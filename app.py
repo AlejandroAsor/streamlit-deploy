@@ -108,12 +108,11 @@ db_config = st.secrets["database"]
 db_names = st.secrets["databases"]
 
 def get_keywords_connection():
-    db_config = config['database']
-    db_name = config['databases']['keywords1']
-    db_endpoint = db_config['endpoint']
-    db_user = db_config['user']
-    db_password = db_config['password']
-    db_port = db_config['port']
+    db_endpoint = db_config["endpoint"]
+    db_name = db_names["keywords1"]
+    db_user = db_config["user"]
+    db_password = db_config["password"]
+    db_port = db_config["port"]
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
@@ -129,23 +128,21 @@ def load_statistics():
     return df
 
 def get_computrabajo_connection():
-    db_config = config['database']
-    db_name = config['databases']['computrabajo']
-    db_endpoint = db_config['endpoint']
-    db_user = db_config['user']
-    db_password = db_config['password']
-    db_port = db_config['port']
+    db_endpoint = db_config["endpoint"]
+    db_name = db_names["computrabajo"]
+    db_user = db_config["user"]
+    db_password = db_config["password"]
+    db_port = db_config["port"]
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
 
 def get_elempleo_connection():
-    db_config = config['database']
-    db_name = config['databases']['elempleo']
-    db_endpoint = db_config['endpoint']
-    db_user = db_config['user']
-    db_password = db_config['password']
-    db_port = db_config['port']
+    db_endpoint = db_config["endpoint"]
+    db_name = db_names["elempleo"]
+    db_user = db_config["user"]
+    db_password = db_config["password"]
+    db_port = db_config["port"]
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
