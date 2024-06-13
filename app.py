@@ -104,8 +104,8 @@ keyword_variants = {
     "Developer Advocate": ["developer advocate", "devrel"],
 }
 
-# Función para cargar estadísticas desde la base de datos
-config = toml.load('config.toml')
+db_config = st.secrets["database"]
+db_names = st.secrets["databases"]
 
 def get_keywords_connection():
     db_config = config['database']
