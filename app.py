@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 import os
 from sqlalchemy import create_engine
 from dotenv import load_dotenv
-load_dotenv()
+import toml
+# load_dotenv()
 # Configuración del tema
 st.set_page_config(
     page_title="Panorama del Empleo en Tecnología: 17 Países en Análisis",
@@ -104,20 +105,21 @@ keyword_variants = {
 }
 
 # Función para cargar estadísticas desde la base de datos
+config = toml.load('config.toml')
+
 def get_keywords_connection():
-    db_endpoint = os.getenv('DB_ENDPOINT')
-    db_name = os.getenv('DB_NAME_KEYWORDS1')
-    db_user = os.getenv('DB_USER')
-    db_password = os.getenv('DB_PASSWORD')
-    db_port = os.getenv('DB_PORT')
+    db_config = config['database']
+    db_name = config['databases']['keywords1']
+    db_endpoint = db_config['endpoint']
+    db_user = db_config['user']
+    db_password = db_config['password']
+    db_port = db_config['port']
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
-    # return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
 
 def load_statistics():
     engine = get_keywords_connection()
-    # engine = create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
     query = """
     SELECT * FROM general_statistics
     ORDER BY offer_count_title DESC
@@ -126,32 +128,75 @@ def load_statistics():
         df = pd.read_sql(query, connection)
     return df
 
-# Funciones para obtener las conexiones a las bases de datos
-
-# def get_computrabajo_connection():
-#     return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/computrabajo')
-
-
 def get_computrabajo_connection():
-    db_endpoint = os.getenv('DB_ENDPOINT')
-    db_name = os.getenv('DB_NAME')
-    db_user = os.getenv('DB_USER')
-    db_password = os.getenv('DB_PASSWORD')
-    db_port = os.getenv('DB_PORT')
+    db_config = config['database']
+    db_name = config['databases']['computrabajo']
+    db_endpoint = db_config['endpoint']
+    db_user = db_config['user']
+    db_password = db_config['password']
+    db_port = db_config['port']
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
 
 def get_elempleo_connection():
-    db_endpoint = os.getenv('DB_ENDPOINT')
-    db_name = os.getenv('DB_NAME_ELEMPLEO')
-    db_user = os.getenv('DB_USER')
-
-    db_password = os.getenv('DB_PASSWORD')
-    db_port = os.getenv('DB_PORT')
+    db_config = config['database']
+    db_name = config['databases']['elempleo']
+    db_endpoint = db_config['endpoint']
+    db_user = db_config['user']
+    db_password = db_config['password']
+    db_port = db_config['port']
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
+# def get_keywords_connection():
+#     db_endpoint = os.getenv('DB_ENDPOINT')
+#     db_name = os.getenv('DB_NAME_KEYWORDS1')
+#     db_user = os.getenv('DB_USER')
+#     db_password = os.getenv('DB_PASSWORD')
+#     db_port = os.getenv('DB_PORT')
+#
+#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
+#     return create_engine(connection_string)
+#     # return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
+#
+# def load_statistics():
+#     engine = get_keywords_connection()
+#     # engine = create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
+#     query = """
+#     SELECT * FROM general_statistics
+#     ORDER BY offer_count_title DESC
+#     """
+#     with engine.connect() as connection:
+#         df = pd.read_sql(query, connection)
+#     return df
+#
+# # Funciones para obtener las conexiones a las bases de datos
+#
+# # def get_computrabajo_connection():
+# #     return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/computrabajo')
+#
+#
+# def get_computrabajo_connection():
+#     db_endpoint = os.getenv('DB_ENDPOINT')
+#     db_name = os.getenv('DB_NAME')
+#     db_user = os.getenv('DB_USER')
+#     db_password = os.getenv('DB_PASSWORD')
+#     db_port = os.getenv('DB_PORT')
+#
+#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
+#     return create_engine(connection_string)
+#
+# def get_elempleo_connection():
+#     db_endpoint = os.getenv('DB_ENDPOINT')
+#     db_name = os.getenv('DB_NAME_ELEMPLEO')
+#     db_user = os.getenv('DB_USER')
+#
+#     db_password = os.getenv('DB_PASSWORD')
+#     db_port = os.getenv('DB_PORT')
+#
+#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
+#     return create_engine(connection_string)
     # return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/elempleo')
 
 # Función para cargar palabras clave desde la base de datos
