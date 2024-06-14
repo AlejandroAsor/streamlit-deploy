@@ -380,47 +380,12 @@ selection = st.sidebar.radio("Select Option", options)
 # Título de la página
 st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
-# if selection == "Estadísticas Generales":
-#     st.subheader("Estadísticas Generales")
-#     st.subheader("🔧 Categorías")
-#
-#     categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
-#     all_selected = st.checkbox("Seleccionar Todas", value=True)
-#
-#     if all_selected:
-#         selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
-#     else:
-#         selected_categories = st.multiselect("Elige una o varias categorías", categories)
-#
-#     # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
-#     if set(selected_categories) == set(categories):
-#         all_selected = True
-#     else:
-#         all_selected = False
-#
-#     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
-#     df_stats = load_statistics(selected_categories if not all_selected else None)
-#
-#     # Botones para seleccionar el tipo de visualización
-#     st.subheader("🔧 Tipo de Visualización")
-#     visualization_type = st.selectbox("Elige el tipo de visualización",
-#                                       ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
-#
-#     # Visualización de datos según selección del usuario
-#     if visualization_type == "Tabla":
-#         AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
-#     elif visualization_type == "Gráfico de Barras":
-#         fig = px.bar(df_stats.head(100), x='offer_count_title', y='keyword', title='Gráfico de Barras', height=2000)
-#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
-#         st.plotly_chart(fig)
-#     elif visualization_type == "Gráfico de Torta":
-#         fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
-#         st.plotly_chart(fig)
+
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
     # Usar columnas para poner los selectores en la misma línea
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         categories = ['Programming Language', 'Role', 'Database']
@@ -430,6 +395,11 @@ if selection == "Estadísticas Generales":
     with col2:
         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
+    with col3:
+        # Asumiendo que el DataFrame tiene columnas como en el ejemplo dado (modifica según tus columnas)
+        column_options = ["offer_count_content", "title_frequency", "content_frequency", "avg_salary_usd", "avg_experience"]
+        selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
+
     # Determinar las categorías seleccionadas basadas en la elección del usuario
     if selected_category == "Todas las Categorías":
         selected_categories = categories
@@ -438,15 +408,15 @@ if selection == "Estadísticas Generales":
 
     df_stats = load_statistics(selected_categories)
 
-    # Visualización de datos según selección del usuario
+    # Visualización de datos según selección del usuario y columna seleccionada
     if visualization_type == "Tabla":
-        AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
+        AgGrid(df_stats[[selected_column]], height=500, width='100%', fit_columns_on_grid_load=True)
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x='offer_count_title', y='keyword', title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x=selected_column, y='keyword', title='Gráfico de Barras', height=2000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
     elif visualization_type == "Gráfico de Torta":
-        fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
+        fig = px.pie(df_stats.head(10), names='keyword', values=selected_column, title='Gráfico de Torta')
         st.plotly_chart(fig)
 
 elif selection == "Ofertas":
