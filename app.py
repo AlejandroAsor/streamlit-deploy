@@ -421,13 +421,14 @@ if selection == "Estadísticas Generales":
     st.subheader("🔧 Categorías")
 
     categories = ['Programming Language', 'Role', 'Database']
-    default_categories = ["Todas las Categorías"] + categories
-    selected_categories = st.multiselect("Elige una o varias categorías", default_categories, default=default_categories)
+    category_options = ["Todas las Categorías"] + categories
+    selected_category = st.selectbox("Elige una categoría", category_options)
 
-    if "Todas las Categorías" in selected_categories:
-        selected_categories = categories  # Considerar todas las categorías si "Todas las Categorías" está seleccionada
+    # Determinar las categorías seleccionadas basadas en la elección del usuario
+    if selected_category == "Todas las Categorías":
+        selected_categories = categories
     else:
-        selected_categories = [cat for cat in selected_categories if cat in categories]  # Filtrar solo categorías válidas
+        selected_categories = [selected_category]
 
     df_stats = load_statistics(selected_categories)
 
@@ -443,8 +444,6 @@ if selection == "Estadísticas Generales":
     elif visualization_type == "Gráfico de Torta":
         fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
         st.plotly_chart(fig)
-
-
 
 elif selection == "Ofertas":
     st.subheader("Ofertas")
