@@ -360,7 +360,7 @@ def fetch_job_details_with_location(job_ids):
     query_comp = """
     SELECT jl.title AS titulo, jl.url, jl.date_scraped, l.country
     FROM job_listings jl
-    JOIN locations l ON jl.location_id = l.id
+    LEFT JOIN locations l ON jl.location_id = l.id
     WHERE jl.id::text = ANY(%s) AND jl.date_scraped >= %s
     """
     with engine_comp.connect() as connection:
@@ -370,7 +370,7 @@ def fetch_job_details_with_location(job_ids):
     query_elempleo = """
     SELECT jl.titulo, jl.url, jl.date_scraped, l.country
     FROM job_listings jl
-    JOIN locations l ON jl.location_id = l.id
+    LEFT JOIN locations l ON jl.location_id = l.id
     WHERE jl.id::text = ANY(%s) AND jl.date_scraped >= %s
     """
     with engine_elempleo.connect() as connection:
@@ -474,4 +474,5 @@ elif selection == "Ofertas":
 
 elif selection == "Recoleccion de Data":
     st.subheader("Documentacion")
+
 
