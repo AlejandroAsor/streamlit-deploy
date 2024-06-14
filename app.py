@@ -123,19 +123,32 @@ def load_job_data():
     with engine_elempleo.connect() as conn:
         df_elempleo = pd.read_sql(query, conn)
 
-    # Combinando y sumando los conteos de ambos sitios
+    # Combinando los resultados
     df_total = pd.concat([df_computrabajo, df_elempleo])
-    df_total['date_day'] = pd.to_datetime(df_total['date_day'])  # Asegurarse que es datetime
+
+    # Verificar y limpiar datos antes de la conversión
+    print("Datos antes de la conversión:")
+    print(df_total.head())
+    print(df_total['date_day'].unique())
+
+    # Convertir a datetime, manejando errores
+    df_total['date_day'] = pd.to_datetime(df_total['date_day'], errors='coerce')
+    print("Datos después de la conversión:")
+    print(df_total.head())
+
+    # Eliminar filas donde 'date_day' es NaT
+    df_total = df_total.dropna(subset=['date_day'])
+
+    # Agrupar por día y sumar conteos
     df_total = df_total.groupby('date_day').sum().reset_index()
 
     return df_total
 
-
+# Plot data
 def plot_data(df):
     fig = px.line(df, x='date_day', y='count', title='Daily Job Scraping Status',
                   labels={'date_day': 'Date', 'count': 'Number of Jobs Collected'})
     st.plotly_chart(fig, use_container_width=True)
-
 
 # Cargando datos y creando el gráfico
 df_job_data = load_job_data()
