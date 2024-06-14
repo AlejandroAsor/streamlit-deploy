@@ -316,6 +316,6 @@ elif selection == "Ofertas":
 elif selection == "Recolección de Datos":
     st.subheader("Recolección de Datos")
     current_size = "658,362"
-    st.metric(label="Jobs Database Size", value=f"{current_size}")
+    st.metric(label="Tamaño de la Base de Datos con Ofertas Laborales", value=f"{current_size}")
     df_job_data = load_job_data()
     plot_data(df_job_data)
