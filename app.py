@@ -418,11 +418,17 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 #         st.plotly_chart(fig)
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
-    st.subheader("🔧 Categorías")
 
-    categories = ['Programming Language', 'Role', 'Database']
-    category_options = ["Todas las Categorías"] + categories
-    selected_category = st.selectbox("Elige una categoría", category_options)
+    # Usar columnas para poner los selectores en la misma línea
+    col1, col2 = st.columns(2)
+
+    with col1:
+        categories = ['Programming Language', 'Role', 'Database']
+        category_options = ["Todas las Categorías"] + categories
+        selected_category = st.selectbox("🔧 Categorías", category_options)
+
+    with col2:
+        visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
     # Determinar las categorías seleccionadas basadas en la elección del usuario
     if selected_category == "Todas las Categorías":
@@ -432,9 +438,7 @@ if selection == "Estadísticas Generales":
 
     df_stats = load_statistics(selected_categories)
 
-    st.subheader("🔧 Tipo de Visualización")
-    visualization_type = st.selectbox("Elige el tipo de visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
-
+    # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
         AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
     elif visualization_type == "Gráfico de Barras":
