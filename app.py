@@ -58,20 +58,23 @@ def load_statistics(categories=None, country=None, sort_column='offer_count_titl
     else:
         # Si no se especifica un país, usar general_statistics
         table_name = "general_statistics"
+        where_clause = ""
         if categories:
             categories_str = "', '".join(categories)
             where_clause = f"WHERE category IN ('{categories_str}')"
-        else:
-            where_clause = ""
+
+    # Añadir cláusula para excluir filas donde la columna de ordenamiento es nula
+    non_null_clause = f" AND {sort_column} IS NOT NULL" if sort_column != "offer_count_title" else ""
 
     query = f"""
     SELECT * FROM {table_name}
-    {where_clause}
+    {where_clause}{non_null_clause}
     ORDER BY {sort_column} DESC
     """
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     return df
+
 
 def get_computrabajo_connection():
     db_endpoint = db_config["endpoint"]
