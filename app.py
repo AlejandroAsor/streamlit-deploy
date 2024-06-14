@@ -193,7 +193,7 @@ if selection == "Estadísticas Generales":
 
     with col2:
         country_list = ['Chile', 'Guatemala', 'Mexico', 'El Salvador', 'Peru', 'Colombia', 'Argentina', 'Ecuador', 'Honduras', 'Uruguay', 'Costa Rica', 'Nicaragua', 'Paraguay', 'Panama', 'Bolivia', 'Venezuela', 'Republica Dominicana']
-        selected_country = st.selectbox("🔧 País", ["Todos los países"] + country_list)
+        selected_country = st.selectbox("🔧 País", ["Todos los países"] + sorted(country_list))
 
     # Segunda fila con dos columnas
     col3, col4 = st.columns(2)
