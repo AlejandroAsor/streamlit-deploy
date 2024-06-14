@@ -263,7 +263,7 @@ def load_statistics(country_filter=None):
     query = """
     SELECT gs.keyword, gs.category, gs.offer_count_title, gs.offer_count_content, gs.title_frequency, gs.content_frequency, gs.avg_salary_usd, gs.avg_experience, l.country
     FROM general_statistics gs
-    JOIN job_keywords jk ON gs.keyword = jk.keyword_id
+    JOIN job_keywords jk ON gs.keyword::text = jk.keyword_id::text
     JOIN job_listings jl ON jk.job_id = jl.id
     JOIN locations l ON jl.location_id = l.id
     ORDER BY gs.offer_count_title DESC
