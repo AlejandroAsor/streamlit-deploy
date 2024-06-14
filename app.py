@@ -383,35 +383,28 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    # Ajustar el layout de columnas para un mejor equilibrio visual
-    col1, col2 = st.columns([3, 1])  # Ajuste para dar más espacio a las categorías
+    # Opciones para seleccionar múltiples categorías con mejor interacción
+    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
+    all_selected = st.checkbox("Seleccionar Todas", value=True)
 
-    with col1:
-        # Manejo de selección de categorías
-        categories = ['Categoria 1', 'Categoria 2', 'Categoria 3']  # Asumiendo que tienes categorías definidas
-        all_selected = st.checkbox("Seleccionar Todas", value=True,
-                                   on_change=lambda: update_categories(all_selected, categories))
+    selected_categories = st.multiselect("Elige una o varias categorías", categories,
+                                         default=categories if all_selected else [])
 
-        selected_categories = st.multiselect("Elige una o varias categorías", categories,
-                                             default=categories if all_selected else [])
-
-    with col2:
-        # Manejo del tipo de visualización
-        st.header("🔧 Tipo de Visualización")
-        visualization_type = st.selectbox("Elige el tipo de visualización",
-                                          ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
-
-
-    # Función para actualizar las selecciones de categoría en función del estado del checkbox
-    def update_categories(all_selected, categories):
-        if all_selected:
-            st.session_state['selected_categories'] = categories
-        else:
-            st.session_state['selected_categories'] = []
-
+    # Actualizar la selección de acuerdo con el checkbox de 'Seleccionar Todas'
+    if all_selected:
+        selected_categories = categories
+    else:
+        if set(selected_categories) == set(categories):
+            all_selected = True
+            st.checkbox("Seleccionar Todas", value=True)
 
     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
     df_stats = load_statistics(selected_categories if not all_selected else None)
+
+    # Botones para seleccionar el tipo de visualización
+    st.header("🔧 Tipo de Visualización")
+    visualization_type = st.selectbox("Elige el tipo de visualización",
+                                      ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
     # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
