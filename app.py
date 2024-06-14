@@ -4,105 +4,15 @@ import plotly.express as px
 from st_aggrid import AgGrid, GridOptionsBuilder
 from sqlalchemy import create_engine, inspect
 from datetime import datetime, timedelta
-import os
 from sqlalchemy import create_engine
-from dotenv import load_dotenv
-import toml
-# load_dotenv()
-# Configuración del tema
+from keyword_variants import keyword_variants
+
 st.set_page_config(
     page_title="Panorama del Empleo en Tecnología: 17 Países en Análisis",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-keyword_variants = {
-    "Python": ["python", "py"],
-    "Java": ["java"],
-    "JavaScript": ["javascript", "js"],
-    "C#": ["c#", "csharp"],
-    "C++": ["c++", "cpp"],
-    "PHP": ["php"],
-    "TypeScript": ["typescript", "ts"],
-    "Swift": ["swift"],
-    "Rust": ["rust"],
-    "Objective-C": ["objective-c", "objc"],
-    "Go": ["go", "golang"],
-    "Kotlin": ["kotlin"],
-    "Matlab": ["matlab"],
-    "Dart": ["dart"],
-    "Ruby": ["ruby"],
-    "VBA": ["vba", "visual basic for applications"],
-    "Powershell": ["powershell"],
-    "Ada": ["ada"],
-    "Scala": ["scala"],
-    "Lua": ["lua"],
-    "Abap": ["abap"],
-    "Visual Basic": ["visual basic", "vb"],
-    "Julia": ["julia"],
-    "Perl": ["perl"],
-    "Haskell": ["haskell"],
-    "Groovy": ["groovy"],
-    "Cobol": ["cobol"],
-    "Delphi/Pascal": ["delphi", "pascal"],
-    "Oracle": ["oracle"],
-    "MySQL": ["mysql"],
-    "SQL Server": ["sql server", "mssql", "microsoft sql server"],
-    "PostgreSQL": ["postgresql", "postgres"],
-    "MongoDB": ["mongodb"],
-    "Microsoft Access": ["microsoft access", "access"],
-    "Firebase": ["firebase"],
-    "Redis": ["redis"],
-    "Splunk": ["splunk"],
-    "SQLite": ["sqlite"],
-    "Elasticsearch": ["elasticsearch", "elastic search"],
-    "MariaDB": ["mariadb"],
-    "SAP HANA": ["sap hana", "hana"],
-    "DynamoDB": ["dynamodb", "amazon dynamodb"],
-    "DB2": ["db2", "ibm db2"],
-    "Apache Hive": ["apache hive", "hive"],
-    "Neo4j": ["neo4j"],
-    "FileMaker": ["filemaker"],
-    "Solr": ["solr", "apache solr"],
-    "Firebird": ["firebird"],
-    "Ingres": ["ingres"],
-    "Sybase": ["sybase"],
-    "Hbase": ["hbase"],
-    "CouchBase": ["couchbase"],
-    "Memcached": ["memcached"],
-    "Riak": ["riak"],
-    "Informix": ["informix", "ibm informix"],
-    "CouchDB": ["couchdb"],
-    "dBase": ["dbase"],
-    "Netezza": ["netezza", "ibm netezza"],
-    "Full-stack Developer": ["full-stack", "full stack", "fullstack"],
-    "Back-end Developer": ["back-end", "backend", "back end"],
-    "Front-end Developer": ["front-end", "frontend", "front end"],
-    "Desktop or Enterprise Applications Developer": ["desktop developer", "enterprise applications developer", "desktop applications developer"],
-    "Mobile Developer": ["mobile developer", "mobile app developer", "mobile applications developer"],
-    "Engineering Manager": ["engineering manager", "manager engineering"],
-    "Embedded Applications or Devices Developer": ["embedded developer", "embedded systems developer", "embedded applications developer"],
-    "Data Scientist or Machine Learning Specialist": ["data scientist", "machine learning specialist", "ml specialist"],
-    "DevOps Specialist": ["devops", "devops engineer", "devops specialist"],
-    "Research & Development Role": ["r&d", "research and development"],
-    "Senior Executive": ["c-suite", "vp", "senior executive"],
-    "Data Engineer": ["data engineer", "ingeniero de datos"],
-    "Cloud Infrastructure Engineer": ["cloud infrastructure engineer", "cloud engineer"],
-    "Game or Graphics Developer": ["game developer", "graphics developer", "game and graphics developer"],
-    "Data or Business Analyst": ["data analyst", "business analyst"],
-    "System Administrator": ["system administrator", "sysadmin"],
-    "Project Manager": ["project manager"],
-    "QA or Test Developer": ["qa developer", "test developer", "quality assurance developer"],
-    "Security Professional": ["security professional", "security engineer"],
-    "Product Manager": ["product manager"],
-    "Site Reliability Engineer": ["site reliability engineer", "sre"],
-    "Developer Experience": ["developer experience", "devex"],
-    "Blockchain Developer": ["blockchain developer", "blockchain engineer"],
-    "Hardware Engineer": ["hardware engineer"],
-    "Designer": ["designer", "graphic designer"],
-    "Database Administrator": ["database administrator", "dba"],
-    "Developer Advocate": ["developer advocate", "devrel"],
-}
 
 db_config = st.secrets["database"]
 db_names = st.secrets["databases"]
@@ -146,57 +56,7 @@ def get_elempleo_connection():
 
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
-# def get_keywords_connection():
-#     db_endpoint = os.getenv('DB_ENDPOINT')
-#     db_name = os.getenv('DB_NAME_KEYWORDS1')
-#     db_user = os.getenv('DB_USER')
-#     db_password = os.getenv('DB_PASSWORD')
-#     db_port = os.getenv('DB_PORT')
-#
-#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
-#     return create_engine(connection_string)
-#     # return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
-#
-# def load_statistics():
-#     engine = get_keywords_connection()
-#     # engine = create_engine('postgresql://alejandroasorcorralesgomez:@localhost/keywords1')
-#     query = """
-#     SELECT * FROM general_statistics
-#     ORDER BY offer_count_title DESC
-#     """
-#     with engine.connect() as connection:
-#         df = pd.read_sql(query, connection)
-#     return df
-#
-# # Funciones para obtener las conexiones a las bases de datos
-#
-# # def get_computrabajo_connection():
-# #     return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/computrabajo')
-#
-#
-# def get_computrabajo_connection():
-#     db_endpoint = os.getenv('DB_ENDPOINT')
-#     db_name = os.getenv('DB_NAME')
-#     db_user = os.getenv('DB_USER')
-#     db_password = os.getenv('DB_PASSWORD')
-#     db_port = os.getenv('DB_PORT')
-#
-#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
-#     return create_engine(connection_string)
-#
-# def get_elempleo_connection():
-#     db_endpoint = os.getenv('DB_ENDPOINT')
-#     db_name = os.getenv('DB_NAME_ELEMPLEO')
-#     db_user = os.getenv('DB_USER')
-#
-#     db_password = os.getenv('DB_PASSWORD')
-#     db_port = os.getenv('DB_PORT')
-#
-#     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
-#     return create_engine(connection_string)
-    # return create_engine('postgresql://alejandroasorcorralesgomez:@localhost/elempleo')
 
-# Función para cargar palabras clave desde la base de datos
 def load_keywords():
     keywords = []
     for primary, variants in keyword_variants.items():
@@ -368,3 +228,4 @@ elif selection == "Ofertas":
 
 elif selection == "Documentacion":
     st.subheader("Documentacion")
+
