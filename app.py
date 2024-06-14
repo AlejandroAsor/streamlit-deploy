@@ -27,23 +27,52 @@ def get_keywords_connection():
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
 
-def load_statistics(categories=None, sort_column='offer_count_title'):
+# def load_statistics(categories=None, sort_column='offer_count_title'):
+#     engine = get_keywords_connection()
+#     if categories:
+#         categories_str = "', '".join(categories)
+#         query = f"""
+#         SELECT *, '{sort_column}' as sort_column FROM general_statistics
+#         WHERE category IN ('{categories_str}')
+#         ORDER BY {sort_column} DESC
+#         """
+#     else:
+#         query = f"""
+#         SELECT *, '{sort_column}' as sort_column FROM general_statistics
+#         ORDER BY {sort_column} DESC
+#         """
+#     with engine.connect() as connection:
+#         df = pd.read_sql(query, connection)
+#     return df
+
+def load_statistics(categories=None, country=None, sort_column='offer_count_title'):
     engine = get_keywords_connection()
-    if categories:
-        categories_str = "', '".join(categories)
-        query = f"""
-        SELECT *, '{sort_column}' as sort_column FROM general_statistics
-        WHERE category IN ('{categories_str}')
-        ORDER BY {sort_column} DESC
-        """
+
+    if country and country != "Todos los países":
+        # Si se especifica un país, usar country_statistics
+        table_name = "country_statistics"
+        where_clause = f"WHERE country = '{country}'"
+        if categories:
+            categories_str = "', '".join(categories)
+            where_clause += f" AND category IN ('{categories_str}')"
     else:
-        query = f"""
-        SELECT *, '{sort_column}' as sort_column FROM general_statistics
-        ORDER BY {sort_column} DESC
-        """
+        # Si no se especifica un país, usar general_statistics
+        table_name = "general_statistics"
+        if categories:
+            categories_str = "', '".join(categories)
+            where_clause = f"WHERE category IN ('{categories_str}')"
+        else:
+            where_clause = ""
+
+    query = f"""
+    SELECT * FROM {table_name}
+    {where_clause}
+    ORDER BY {sort_column} DESC
+    """
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     return df
+
 def get_computrabajo_connection():
     db_endpoint = db_config["endpoint"]
     db_name = db_names["computrabajo"]
@@ -151,11 +180,11 @@ column_names_in_spanish = {
     'avg_experience': 'Exp. promedio (años)'
 }
 
-
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    col1, col2, col3 = st.columns(3)
+    # Primera fila con dos columnas
+    col1, col2 = st.columns(2)
 
     with col1:
         categories = ['Programming Language', 'Role', 'Database']
@@ -163,9 +192,16 @@ if selection == "Estadísticas Generales":
         selected_category = st.selectbox("🔧 Categorías", category_options)
 
     with col2:
-        visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+        country_list = ['Chile', 'Guatemala', 'Mexico', 'El Salvador', 'Peru', 'Colombia', 'Argentina', 'Ecuador', 'Honduras', 'Uruguay', 'Costa Rica', 'Nicaragua', 'Paraguay', 'Panama', 'Bolivia', 'Venezuela', 'Republica Dominicana']
+        selected_country = st.selectbox("🔧 País", ["Todos los países"] + country_list)
+
+    # Segunda fila con dos columnas
+    col3, col4 = st.columns(2)
 
     with col3:
+        visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+
+    with col4:
         column_options = list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
 
@@ -175,25 +211,67 @@ if selection == "Estadísticas Generales":
         selected_categories = [selected_category]
 
     # Determinar el criterio de ordenamiento y usar el nombre en español
-    sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
-    df_stats = load_statistics(selected_categories, sort_column)
+    sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)]
+    df_stats = load_statistics(selected_categories, selected_country, sort_column)
 
     # Cambiar nombres de columnas al español
     df_stats.rename(columns=column_names_in_spanish, inplace=True)
-    sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)  # Obtener el nombre en español
+    sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)
 
     if visualization_type == "Tabla":
-        columns_to_show = ["Palabra clave", "Categoría"] + ([selected_column] if selected_column != "Todas las Columnas" else list(column_names_in_spanish.values())[2:])
-        AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
+        AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
 
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=500)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
 
     elif visualization_type == "Gráfico de Torta":
         fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column_spanish, title='Gráfico de Torta')
         st.plotly_chart(fig)
+
+# if selection == "Estadísticas Generales":
+#     st.subheader("Estadísticas Generales")
+#
+#     col1, col2, col3 = st.columns(3)
+#
+#     with col1:
+#         categories = ['Programming Language', 'Role', 'Database']
+#         category_options = ["Todas las Categorías"] + categories
+#         selected_category = st.selectbox("🔧 Categorías", category_options)
+#
+#     with col2:
+#         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+#
+#     with col3:
+#         column_options = list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
+#         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
+#
+#     if selected_category == "Todas las Categorías":
+#         selected_categories = categories
+#     else:
+#         selected_categories = [selected_category]
+#
+#     # Determinar el criterio de ordenamiento y usar el nombre en español
+#     sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
+#     df_stats = load_statistics(selected_categories, sort_column)
+#
+#     # Cambiar nombres de columnas al español
+#     df_stats.rename(columns=column_names_in_spanish, inplace=True)
+#     sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)  # Obtener el nombre en español
+#
+#     if visualization_type == "Tabla":
+#         columns_to_show = ["Palabra clave", "Categoría"] + ([selected_column] if selected_column != "Todas las Columnas" else list(column_names_in_spanish.values())[2:])
+#         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
+#
+#     elif visualization_type == "Gráfico de Barras":
+#         fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=2000)
+#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+#         st.plotly_chart(fig)
+#
+#     elif visualization_type == "Gráfico de Torta":
+#         fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column_spanish, title='Gráfico de Torta')
+#         st.plotly_chart(fig)
 
 elif selection == "Ofertas":
     st.subheader("Ofertas")
