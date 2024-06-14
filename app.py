@@ -382,7 +382,7 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
-    st.header("🔧 Categorías")
+    st.subheader("🔧 Categorías")
     # Opciones para seleccionar múltiples categorías con mejor interacción
     categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
     all_selected = st.checkbox("Seleccionar Todas", value=True)
@@ -402,7 +402,7 @@ if selection == "Estadísticas Generales":
     df_stats = load_statistics(selected_categories if not all_selected else None)
 
     # Botones para seleccionar el tipo de visualización
-    st.header("🔧 Tipo de Visualización")
+    st.subheader("🔧 Tipo de Visualización")
     visualization_type = st.selectbox("Elige el tipo de visualización",
                                       ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
