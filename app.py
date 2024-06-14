@@ -109,29 +109,27 @@ def load_job_data():
     engine_computrabajo = get_computrabajo_connection()
     engine_elempleo = get_elempleo_connection()
 
-    query_computrabajo = """
-    SELECT date_scraped, COUNT(*) AS count
+    query = """
+    SELECT date_trunc('day', date_scraped) AS date_day, COUNT(*) AS count
     FROM job_listings
-    GROUP BY date_scraped
-    ORDER BY date_scraped;
-    """
-    query_elempleo = """
-    SELECT date_scraped, COUNT(*) AS count
-    FROM job_listings
-    GROUP BY date_scraped
-    ORDER BY date_scraped;
+    WHERE date_scraped IS NOT NULL
+    GROUP BY date_trunc('day', date_scraped)
+    ORDER BY date_trunc('day', date_scraped);
     """
 
     with engine_computrabajo.connect() as conn:
-        df_computrabajo = pd.read_sql(query_computrabajo, conn)
+        df_computrabajo = pd.read_sql(query, conn)
 
     with engine_elempleo.connect() as conn:
-        df_elempleo = pd.read_sql(query_elempleo, conn)
+        df_elempleo = pd.read_sql(query, conn)
 
     # Combinando y sumando los conteos de ambos sitios
-    df_total = pd.concat([df_computrabajo, df_elempleo]).groupby('date_scraped').sum().reset_index()
+    df_total = pd.concat([df_computrabajo, df_elempleo])
+    df_total['date_day'] = pd.to_datetime(df_total['date_day'])  # Asegurarse que es datetime
+    df_total = df_total.groupby('date_day').sum().reset_index()
 
     return df_total
+
 
 def plot_data(df):
     fig = px.line(df, x='date_scaped', y='count', title='Daily Job Scraping Status',
