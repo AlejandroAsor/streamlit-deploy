@@ -27,23 +27,6 @@ def get_keywords_connection():
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
 
-# def load_statistics(categories=None, sort_column='offer_count_title'):
-#     engine = get_keywords_connection()
-#     if categories:
-#         categories_str = "', '".join(categories)
-#         query = f"""
-#         SELECT *, '{sort_column}' as sort_column FROM general_statistics
-#         WHERE category IN ('{categories_str}')
-#         ORDER BY {sort_column} DESC
-#         """
-#     else:
-#         query = f"""
-#         SELECT *, '{sort_column}' as sort_column FROM general_statistics
-#         ORDER BY {sort_column} DESC
-#         """
-#     with engine.connect() as connection:
-#         df = pd.read_sql(query, connection)
-#     return df
 
 def load_statistics(categories=None, country=None, sort_column='offer_count_title'):
     engine = get_keywords_connection()
@@ -121,6 +104,45 @@ def fetch_job_ids_by_keyword(keyword):
         df_job_ids = pd.read_sql(query, connection, params=(keyword,))
     return df_job_ids['job_id'].tolist()
 
+
+def load_job_data():
+    engine_computrabajo = get_computrabajo_connection()
+    engine_elempleo = get_elempleo_connection()
+
+    query_computrabajo = """
+    SELECT date_scraped, COUNT(*) AS count
+    FROM job_listings
+    GROUP BY date_scraped
+    ORDER BY date_scraped;
+    """
+    query_elempleo = """
+    SELECT date_scraped, COUNT(*) AS count
+    FROM job_listings
+    GROUP BY date_scraped
+    ORDER BY date_scraped;
+    """
+
+    with engine_computrabajo.connect() as conn:
+        df_computrabajo = pd.read_sql(query_computrabajo, conn)
+
+    with engine_elempleo.connect() as conn:
+        df_elempleo = pd.read_sql(query_elempleo, conn)
+
+    # Combinando y sumando los conteos de ambos sitios
+    df_total = pd.concat([df_computrabajo, df_elempleo]).groupby('date_scraped').sum().reset_index()
+
+    return df_total
+
+def plot_data(df):
+    fig = px.line(df, x='date_scaped', y='count', title='Daily Job Scraping Status',
+                  labels={'date_scraped': 'Date', 'count': 'Number of Jobs Collected'})
+    st.plotly_chart(fig, use_container_width=True)
+
+# Cargando datos y creando el gráfico
+df_job_data = load_job_data()
+plot_data(df_job_data)
+
+
 # Función para obtener detalles de trabajos
 def fetch_job_details(job_ids):
     if not job_ids:
@@ -165,7 +187,7 @@ def fetch_job_details(job_ids):
 
 # Menú desplegable
 st.sidebar.header("🛠️Secciones")
-options = ["Estadísticas Generales", "Ofertas", "Documentacion"]
+options = ["Estadísticas Generales", "Ofertas", "Recolección de Datos"]
 selection = st.sidebar.radio("Select Option", options)
 
 # Título de la página
@@ -235,50 +257,6 @@ if selection == "Estadísticas Generales":
         fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column_spanish, title='Gráfico de Torta')
         st.plotly_chart(fig)
 
-
-# if selection == "Estadísticas Generales":
-#     st.subheader("Estadísticas Generales")
-#
-#     col1, col2, col3 = st.columns(3)
-#
-#     with col1:
-#         categories = ['Programming Language', 'Role', 'Database']
-#         category_options = ["Todas las Categorías"] + categories
-#         selected_category = st.selectbox("🔧 Categorías", category_options)
-#
-#     with col2:
-#         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
-#
-#     with col3:
-#         column_options = list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
-#         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
-#
-#     if selected_category == "Todas las Categorías":
-#         selected_categories = categories
-#     else:
-#         selected_categories = [selected_category]
-#
-#     # Determinar el criterio de ordenamiento y usar el nombre en español
-#     sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
-#     df_stats = load_statistics(selected_categories, sort_column)
-#
-#     # Cambiar nombres de columnas al español
-#     df_stats.rename(columns=column_names_in_spanish, inplace=True)
-#     sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)  # Obtener el nombre en español
-#
-#     if visualization_type == "Tabla":
-#         columns_to_show = ["Palabra clave", "Categoría"] + ([selected_column] if selected_column != "Todas las Columnas" else list(column_names_in_spanish.values())[2:])
-#         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
-#
-#     elif visualization_type == "Gráfico de Barras":
-#         fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=2000)
-#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
-#         st.plotly_chart(fig)
-#
-#     elif visualization_type == "Gráfico de Torta":
-#         fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column_spanish, title='Gráfico de Torta')
-#         st.plotly_chart(fig)
-
 elif selection == "Ofertas":
     st.subheader("Ofertas")
     st.header("🔧 Seleccionar Palabra Clave")
@@ -327,7 +305,7 @@ elif selection == "Ofertas":
     else:
         st.write("No se encontraron ofertas para la palabra clave seleccionada.")
 
-elif selection == "Recoleccion de Data":
-    st.subheader("Documentacion")
-
-
+elif selection == "Recolección de Datos":
+    st.subheader("Recolección de Datos")
+    df_job_data = load_job_data()
+    plot_data(df_job_data)
