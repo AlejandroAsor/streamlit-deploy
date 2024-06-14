@@ -264,13 +264,14 @@ def get_keywords_connection():
     return create_engine(connection_string)
 
 
-def load_statistics(category=None):
+def load_statistics(categories=None):
     engine = get_keywords_connection()
-    # Modificar la consulta para incluir un filtro por categoría si se proporciona
-    if category:
+    # Modificar la consulta para incluir un filtro por categorías si se proporcionan
+    if categories:
+        categories_str = "', '".join(categories)  # Convertir la lista en una cadena adecuada para SQL
         query = f"""
         SELECT * FROM general_statistics
-        WHERE category = '{category}'
+        WHERE category IN ('{categories_str}')
         ORDER BY offer_count_title DESC
         """
     else:
@@ -382,12 +383,16 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    # Opción para seleccionar una categoría
-    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
-    selected_category = st.selectbox("Elige una categoría", categories, index=0)
+    # Opciones para seleccionar múltiples categorías
+    categories = ['Programming Languages', 'Role', 'Database', 'Todos']  # Asumiendo que tienes categorías definidas
+    selected_categories = st.multiselect("Elige una o varias categorías", categories, default='Todos')
 
-    # Cargar estadísticas desde la base de datos filtrando por categoría
-    df_stats = load_statistics(selected_category)
+    # Comprobar si se seleccionó "Todos" para cargar todas las categorías
+    if 'Todos' in selected_categories:
+        selected_categories = None  # None significará sin filtro de categoría en la función load_statistics
+
+    # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
+    df_stats = load_statistics(selected_categories)
 
     # Seleccionar tipo de visualización
     st.header("🔧 Tipo de Visualización")
@@ -429,6 +434,7 @@ if selection == "Estadísticas Generales":
         df_pie = df_page.head(10)  # Limitar a los primeros 10 resultados
         fig = px.pie(df_pie, names='keyword', values='offer_count_title', title='Gráfico de Torta')
         st.plotly_chart(fig)
+
 
 
 elif selection == "Ofertas":
