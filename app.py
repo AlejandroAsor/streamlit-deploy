@@ -261,7 +261,7 @@ def get_keywords_connection():
 def load_statistics(country_filter=None):
     engine = get_keywords_connection()
     query = """
-    SELECT gs.*, l.country
+    SELECT gs.keyword, gs.category, gs.offer_count_title, gs.offer_count_content, gs.title_frequency, gs.content_frequency, gs.avg_salary_usd, gs.avg_experience, l.country
     FROM general_statistics gs
     JOIN job_keywords jk ON gs.keyword = jk.keyword_id
     JOIN job_listings jl ON jk.job_id = jl.id
