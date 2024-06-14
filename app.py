@@ -230,7 +230,6 @@
 #     st.subheader("Documentacion")
 #
 
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -329,7 +328,7 @@ def fetch_job_details(job_ids):
 
     engine_comp = get_computrabajo_connection()
     query_comp = """
-    SELECT title AS titulo, url, date_scraped, location_id
+    SELECT title AS titulo, url, date_scraped
     FROM job_listings
     WHERE id::text = ANY(%s) AND date_scraped >= %s
     """
@@ -338,7 +337,7 @@ def fetch_job_details(job_ids):
 
     engine_elempleo = get_elempleo_connection()
     query_elempleo = """
-    SELECT titulo, url, date_scraped, location_id
+    SELECT titulo, url, date_scraped
     FROM job_listings
     WHERE id::text = ANY(%s) AND date_scraped >= %s
     """
@@ -348,16 +347,37 @@ def fetch_job_details(job_ids):
     df_jobs = pd.concat([df_jobs_comp, df_jobs_elempleo], ignore_index=True)
     df_jobs['date_scraped'] = pd.to_datetime(df_jobs['date_scraped'])
 
-    # Agregar país a los detalles de trabajos
-    engine = get_keywords_connection()
-    query_location = """
-    SELECT id, country
-    FROM locations
-    """
-    with engine.connect() as connection:
-        df_locations = pd.read_sql(query_location, connection)
-    df_jobs = df_jobs.merge(df_locations, left_on='location_id', right_on='id', how='left')
+    return df_jobs
 
+def fetch_job_details_with_location(job_ids):
+    if not job_ids:
+        return pd.DataFrame()
+
+    job_ids_str = [str(job_id) for job_id in job_ids]
+    one_month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
+
+    engine_comp = get_computrabajo_connection()
+    query_comp = """
+    SELECT jl.title AS titulo, jl.url, jl.date_scraped, l.country
+    FROM job_listings jl
+    JOIN locations l ON jl.location_id = l.id
+    WHERE jl.id::text = ANY(%s) AND jl.date_scraped >= %s
+    """
+    with engine_comp.connect() as connection:
+        df_jobs_comp = pd.read_sql(query_comp, connection, params=(job_ids_str, one_month_ago))
+
+    engine_elempleo = get_elempleo_connection()
+    query_elempleo = """
+    SELECT jl.titulo, jl.url, jl.date_scraped, l.country
+    FROM job_listings jl
+    JOIN locations l ON jl.location_id = l.id
+    WHERE jl.id::text = ANY(%s) AND jl.date_scraped >= %s
+    """
+    with engine_elempleo.connect() as connection:
+        df_jobs_elempleo = pd.read_sql(query_elempleo, connection, params=(job_ids_str, one_month_ago))
+
+    df_jobs = pd.concat([df_jobs_comp, df_jobs_elempleo], ignore_index=True)
+    df_jobs['date_scraped'] = pd.to_datetime(df_jobs['date_scraped'])
     df_jobs.sort_values(by='date_scraped', ascending=False, inplace=True)
 
     return df_jobs
@@ -427,7 +447,7 @@ elif selection == "Ofertas":
     for variant in selected_variants:
         job_ids.extend(fetch_job_ids_by_keyword(variant))
 
-    df_jobs = fetch_job_details(job_ids)
+    df_jobs = fetch_job_details_with_location(job_ids)
     df_jobs = df_jobs[df_jobs['country'].isin(selected_countries)]
 
     with col2:
@@ -446,6 +466,7 @@ elif selection == "Ofertas":
             st.markdown(f"""
                 <div style='border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>
                     <h3><a href='{job["url"]}' target='_blank'>{selected_keyword}: {job['titulo']}</a></h3>
+                    <p>{job['country']}</p>
                 </div>
                 """, unsafe_allow_html=True)
     else:
@@ -453,3 +474,4 @@ elif selection == "Ofertas":
 
 elif selection == "Recoleccion de Data":
     st.subheader("Documentacion")
+
