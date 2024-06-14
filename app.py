@@ -469,7 +469,7 @@ if selection == "Estadísticas Generales":
         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
     with col3:
-        column_options = ["Todas las Columnas"] + list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
+        column_options = list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
 
     if selected_category == "Todas las Categorías":
@@ -485,7 +485,6 @@ if selection == "Estadísticas Generales":
     df_stats.rename(columns=column_names_in_spanish, inplace=True)
     sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)  # Obtener el nombre en español
 
-    # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
         columns_to_show = ["Palabra clave", "Categoría"] + ([selected_column] if selected_column != "Todas las Columnas" else list(column_names_in_spanish.values())[2:])
         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
