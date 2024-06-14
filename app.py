@@ -382,7 +382,7 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
-
+    st.header("🔧 Categorías")
     # Opciones para seleccionar múltiples categorías con mejor interacción
     categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
     all_selected = st.checkbox("Seleccionar Todas", value=True)
