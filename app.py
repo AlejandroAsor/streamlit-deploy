@@ -400,12 +400,14 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 column_names_in_spanish = {
     'keyword': 'Palabra clave',
     'category': 'Categoría',
-    'offer_count_content': 'Conteo de ofertas',
-    'title_frequency': 'Frecuencia de título',
-    'content_frequency': 'Frecuencia de contenido',
-    'avg_salary_usd': 'Salario promedio (USD)',
-    'avg_experience': 'Experiencia promedio'
+    'offer_count_title': 'Ofertas unicas (solo título)',
+    'offer_count_content': 'Ofertas unicas (total)',
+    'title_frequency': 'Frecuencia en títulos',
+    'content_frequency': 'Frecuencia en total',
+    'avg_salary_usd': 'Salario prom. (USD)',
+    'avg_experience': 'Exp. promedio (años)'
 }
+
 
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
