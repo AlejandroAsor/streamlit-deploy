@@ -490,7 +490,7 @@ if selection == "Estadísticas Generales":
         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
 
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x='Palabra clave', y=sort_column_spanish, title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=2000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
 
