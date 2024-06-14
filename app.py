@@ -241,7 +241,6 @@ import plotly.express as px
 from st_aggrid import AgGrid, GridOptionsBuilder
 from sqlalchemy import create_engine, inspect
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
 from keyword_variants import keyword_variants
 
 st.set_page_config(
@@ -263,11 +262,13 @@ def get_keywords_connection():
     connection_string = f'postgresql://{db_user}:{db_password}@{db_endpoint}:{db_port}/{db_name}'
     return create_engine(connection_string)
 
-def load_statistics():
+def load_statistics_with_country():
     engine = get_keywords_connection()
     query = """
-    SELECT * FROM general_statistics
-    ORDER BY offer_count_title DESC
+    SELECT gs.*, loc.country
+    FROM general_statistics gs
+    JOIN locations loc ON gs.location_id = loc.id
+    ORDER BY gs.offer_count_title DESC
     """
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
@@ -309,66 +310,6 @@ def load_countries():
         df = pd.read_sql(query, connection)
     return df
 
-# Función para verificar la existencia de la tabla
-def table_exists(engine, table_name):
-    inspector = inspect(engine)
-    return table_name in inspector.get_table_names()
-
-# Función para obtener los job_id asociados a una palabra clave
-def fetch_job_ids_by_keyword(keyword):
-    engine = get_keywords_connection()
-    query = """
-    SELECT job_id::text
-    FROM job_keywords jk
-    JOIN keywords k ON jk.keyword_id = k.id
-    WHERE k.keyword = %s
-    """
-    with engine.connect() as connection:
-        df_job_ids = pd.read_sql(query, connection, params=(keyword,))
-    return df_job_ids['job_id'].tolist()
-
-# Función para obtener detalles de trabajos
-def fetch_job_details(job_ids):
-    if not job_ids:
-        return pd.DataFrame()
-
-    # Convertir lista de job_ids a texto
-    job_ids_str = [str(job_id) for job_id in job_ids]
-
-    # Calcular la fecha de hace un mes
-    one_month_ago = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
-
-    # Obtener detalles de trabajos desde computrabajo
-    engine_comp = get_computrabajo_connection()
-    query_comp = """
-    SELECT title AS titulo, url, date_scraped
-    FROM job_listings
-    WHERE id::text = ANY(%s) AND date_scraped >= %s
-    """
-    with engine_comp.connect() as connection:
-        df_jobs_comp = pd.read_sql(query_comp, connection, params=(job_ids_str, one_month_ago))
-
-    # Obtener detalles de trabajos desde elempleo
-    engine_elempleo = get_elempleo_connection()
-    query_elempleo = """
-    SELECT titulo, url, date_scraped
-    FROM job_listings
-    WHERE id::text = ANY(%s) AND date_scraped >= %s
-    """
-    with engine_elempleo.connect() as connection:
-        df_jobs_elempleo = pd.read_sql(query_elempleo, connection, params=(job_ids_str, one_month_ago))
-
-    # Combinar los resultados
-    df_jobs = pd.concat([df_jobs_comp, df_jobs_elempleo], ignore_index=True)
-
-    # Asegurar que date_scraped es del tipo datetime
-    df_jobs['date_scraped'] = pd.to_datetime(df_jobs['date_scraped'])
-
-    # Ordenar por date_scraped
-    df_jobs.sort_values(by='date_scraped', ascending=False, inplace=True)
-
-    return df_jobs
-
 # Menú desplegable
 st.sidebar.header("🛠️Secciones")
 options = ["Estadísticas Generales", "Ofertas", "Documentacion"]
@@ -379,8 +320,8 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
-    # Cargar estadísticas desde la base de datos
-    df_stats = load_statistics()
+    # Cargar estadísticas desde la base de datos con la información de país
+    df_stats = load_statistics_with_country()
 
     # Cargar países desde la base de datos
     df_countries = load_countries()
