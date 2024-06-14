@@ -146,13 +146,9 @@ def load_job_data():
 
 # Plot data
 def plot_data(df):
-    fig = px.line(df, x='date_day', y='count', title='Daily Job Scraping Status',
-                  labels={'date_day': 'Date', 'count': 'Number of Jobs Collected'})
+    fig = px.line(df, x='date_day', y='count', title='Estado Diario de las Ofertas Laborales Recolectadas',
+                  labels={'date_day': 'Fecha', 'count': 'Número de Ofertas Laborales Recopiladas'})
     st.plotly_chart(fig, use_container_width=True)
-
-# Cargando datos y creando el gráfico
-df_job_data = load_job_data()
-plot_data(df_job_data)
 
 
 # Función para obtener detalles de trabajos
