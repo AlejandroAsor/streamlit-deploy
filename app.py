@@ -237,7 +237,6 @@ import plotly.express as px
 from st_aggrid import AgGrid, GridOptionsBuilder
 from sqlalchemy import create_engine, inspect
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
 from keyword_variants import keyword_variants
 
 st.set_page_config(
@@ -262,9 +261,10 @@ def get_keywords_connection():
 def load_statistics(country_filter=None):
     engine = get_keywords_connection()
     query = """
-    SELECT gs.*, l.country 
+    SELECT gs.*, l.country
     FROM general_statistics gs
-    JOIN job_listings jl ON gs.keyword = jl.keyword
+    JOIN job_keywords jk ON gs.keyword = jk.keyword_id
+    JOIN job_listings jl ON jk.job_id = jl.id
     JOIN locations l ON jl.location_id = l.id
     ORDER BY gs.offer_count_title DESC
     """
@@ -329,7 +329,7 @@ def fetch_job_details(job_ids):
 
     engine_comp = get_computrabajo_connection()
     query_comp = """
-    SELECT title AS titulo, url, date_scraped, country
+    SELECT title AS titulo, url, date_scraped, location_id
     FROM job_listings
     WHERE id::text = ANY(%s) AND date_scraped >= %s
     """
@@ -338,7 +338,7 @@ def fetch_job_details(job_ids):
 
     engine_elempleo = get_elempleo_connection()
     query_elempleo = """
-    SELECT titulo, url, date_scraped, country
+    SELECT titulo, url, date_scraped, location_id
     FROM job_listings
     WHERE id::text = ANY(%s) AND date_scraped >= %s
     """
@@ -347,6 +347,17 @@ def fetch_job_details(job_ids):
 
     df_jobs = pd.concat([df_jobs_comp, df_jobs_elempleo], ignore_index=True)
     df_jobs['date_scraped'] = pd.to_datetime(df_jobs['date_scraped'])
+
+    # Agregar país a los detalles de trabajos
+    engine = get_keywords_connection()
+    query_location = """
+    SELECT id, country
+    FROM locations
+    """
+    with engine.connect() as connection:
+        df_locations = pd.read_sql(query_location, connection)
+    df_jobs = df_jobs.merge(df_locations, left_on='location_id', right_on='id', how='left')
+
     df_jobs.sort_values(by='date_scraped', ascending=False, inplace=True)
 
     return df_jobs
@@ -358,7 +369,7 @@ selection = st.sidebar.radio("Select Option", options)
 
 # Filtro por país
 countries = ["Argentina", "Brasil", "Chile", "Colombia", "México", "Perú", "España", "Ecuador", "Costa Rica", "Uruguay"]
-selected_countries = st.sidebar.multiselect("Selecciona los países", countries)
+selected_countries = st.sidebar.multiselect("Selecciona los países", countries, default=countries)
 
 st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
