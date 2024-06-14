@@ -225,7 +225,7 @@ if selection == "Estadísticas Generales":
     if visualization_type == "Tabla":
         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=500)
+        fig = px.bar(df_stats.head(100), x=sort_column_spanish, y='Palabra clave', title='Gráfico de Barras', height=1000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
     elif visualization_type == "Gráfico de Torta":
