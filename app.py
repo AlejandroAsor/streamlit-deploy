@@ -404,23 +404,27 @@ if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
     st.subheader("🔧 Categorías")
 
-    categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
-    all_selected = st.checkbox("Seleccionar Todas", value=True)
+    # categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
+    # all_selected = st.checkbox("Seleccionar Todas", value=True)
+    #
+    # if all_selected:
+    #     selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
+    # else:
+    #     selected_categories = st.multiselect("Elige una o varias categorías", categories)
+    #
+    # # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
+    # if set(selected_categories) == set(categories):
+    #     all_selected = True
+    # else:
+    #     all_selected = False
+    #
+    # # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
+    # df_stats = load_statistics(selected_categories if not all_selected else None)
+    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
+    selected_category = st.selectbox("Elige una categoría", categories, index=0)
 
-    if all_selected:
-        selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
-    else:
-        selected_categories = st.multiselect("Elige una o varias categorías", categories)
-
-    # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
-    if set(selected_categories) == set(categories):
-        all_selected = True
-    else:
-        all_selected = False
-
-    # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
-    df_stats = load_statistics(selected_categories if not all_selected else None)
-
+    # Cargar estadísticas desde la base de datos filtrando por categoría
+    df_stats = load_statistics(selected_category)
     # Botones para seleccionar el tipo de visualización
     st.subheader("🔧 Tipo de Visualización")
     visualization_type = st.selectbox("Elige el tipo de visualización",
