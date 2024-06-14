@@ -383,28 +383,33 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    # Opciones para seleccionar múltiples categorías con mejor interacción
-    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
-    all_selected = st.checkbox("Seleccionar Todas", value=True)
+    # Utilizar columnas para colocar los controles lado a lado
+    col1, col2 = st.columns([2, 1])  # Ajusta los tamaños de las columnas según necesidades
 
-    selected_categories = st.multiselect("Elige una o varias categorías", categories,
-                                         default=categories if all_selected else [])
+    with col1:
+        # Opciones para seleccionar múltiples categorías con mejor interacción
+        categories = ['Categoria 1', 'Categoria 2', 'Categoria 3']  # Asumiendo que tienes categorías definidas
+        all_selected = st.checkbox("Seleccionar Todas", value=True)
 
-    # Actualizar la selección de acuerdo con el checkbox de 'Seleccionar Todas'
-    if all_selected:
-        selected_categories = categories
-    else:
-        if set(selected_categories) == set(categories):
-            all_selected = True
-            st.checkbox("Seleccionar Todas", value=True)
+        selected_categories = st.multiselect("Elige una o varias categorías", categories,
+                                             default=categories if all_selected else [])
 
-    # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
-    df_stats = load_statistics(selected_categories if not all_selected else None)
+        # Actualizar la selección de acuerdo con el checkbox de 'Seleccionar Todas'
+        if all_selected:
+            selected_categories = categories
+        else:
+            if set(selected_categories) == set(categories):
+                all_selected = True
+                st.checkbox("Seleccionar Todas", value=True)
 
-    # Botones para seleccionar el tipo de visualización
-    st.header("🔧 Tipo de Visualización")
-    visualization_type = st.selectbox("Elige el tipo de visualización",
-                                      ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+        # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
+        df_stats = load_statistics(selected_categories if not all_selected else None)
+
+    with col2:
+        # Botones para seleccionar el tipo de visualización
+        st.header("🔧 Tipo de Visualización")
+        visualization_type = st.selectbox("Elige el tipo de visualización",
+                                          ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
     # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
@@ -416,7 +421,6 @@ if selection == "Estadísticas Generales":
     elif visualization_type == "Gráfico de Torta":
         fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
         st.plotly_chart(fig)
-
 
 
 elif selection == "Ofertas":
