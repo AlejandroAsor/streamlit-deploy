@@ -405,7 +405,7 @@ if selection == "Estadísticas Generales":
     st.subheader("🔧 Categorías")
 
     categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
-    all_selected = st.checkbox("Seleccionar Todas", value=True, key="sync_all_selected")
+    all_selected = st.checkbox("Seleccionar Todas", value=True)
 
     if all_selected:
         selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
@@ -415,10 +415,8 @@ if selection == "Estadísticas Generales":
     # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
     if set(selected_categories) == set(categories):
         all_selected = True
-        st.checkbox("Seleccionar Todas", value=True, key="sync_all_selected")
     else:
         all_selected = False
-        st.checkbox("Seleccionar Todas", value=False, key="sync_all_selected")
 
     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
     df_stats = load_statistics(selected_categories if not all_selected else None)
