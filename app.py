@@ -400,12 +400,48 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 #
 #     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
 #     df_stats = load_statistics(selected_categories if not all_selected else None)
+# if selection == "Estadísticas Generales":
+#     st.subheader("Estadísticas Generales")
+#     st.subheader("🔧 Categorías")
+#
+#     categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
+#     all_selected = st.checkbox("Seleccionar Todas", value=True)
+#
+#     if all_selected:
+#         selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
+#     else:
+#         selected_categories = st.multiselect("Elige una o varias categorías", categories)
+#
+#     # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
+#     if set(selected_categories) == set(categories):
+#         all_selected = True
+#     else:
+#         all_selected = False
+#
+#     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
+#     df_stats = load_statistics(selected_categories if not all_selected else None)
+#
+#     # Botones para seleccionar el tipo de visualización
+#     st.subheader("🔧 Tipo de Visualización")
+#     visualization_type = st.selectbox("Elige el tipo de visualización",
+#                                       ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+#
+#     # Visualización de datos según selección del usuario
+#     if visualization_type == "Tabla":
+#         AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
+#     elif visualization_type == "Gráfico de Barras":
+#         fig = px.bar(df_stats.head(100), x='offer_count_title', y='keyword', title='Gráfico de Barras', height=2000)
+#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+#         st.plotly_chart(fig)
+#     elif visualization_type == "Gráfico de Torta":
+#         fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
+#         st.plotly_chart(fig)
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
     st.subheader("🔧 Categorías")
 
     categories = ['Programming Language', 'Role', 'Database']  # Categorías definidas
-    all_selected = st.checkbox("Seleccionar Todas", value=True)
+    all_selected = st.checkbox("Seleccionar Todas", value=True, key="all_selected")
 
     if all_selected:
         selected_categories = st.multiselect("Elige una o varias categorías", categories, default=categories)
@@ -414,12 +450,13 @@ if selection == "Estadísticas Generales":
 
     # Sincronizar el estado del checkbox "Seleccionar Todas" con la selección manual de categorías
     if set(selected_categories) == set(categories):
-        all_selected = True
-    else:
-        all_selected = False
+        if not all_selected:
+            st.experimental_rerun()
+    elif all_selected:
+        st.experimental_rerun()
 
     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
-    df_stats = load_statistics(selected_categories if not all_selected else None)
+    df_stats = load_statistics(selected_categories)
 
     # Botones para seleccionar el tipo de visualización
     st.subheader("🔧 Tipo de Visualización")
