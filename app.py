@@ -434,11 +434,9 @@ if selection == "Estadísticas Generales":
         selected_categories = [selected_category]
 
     # Determinar el criterio de ordenamiento
-    # sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
-    # df_stats = load_statistics(selected_categories, sort_column)
-    sort_column_key = next(key for key, value in column_names_in_spanish.items() if value == selected_column)
-    sort_column = sort_column_key if selected_column != "Todas las Columnas" else 'offer_count_title'
+    sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
     df_stats = load_statistics(selected_categories, sort_column)
+
     # Cambiar nombres de columnas al español
     df_stats.rename(columns=column_names_in_spanish, inplace=True)
 
