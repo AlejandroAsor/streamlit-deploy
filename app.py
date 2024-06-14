@@ -264,27 +264,43 @@ def get_keywords_connection():
     return create_engine(connection_string)
 
 
-def load_statistics(categories=None):
+# def load_statistics(categories=None):
+#     engine = get_keywords_connection()
+#     # Modificar la consulta para incluir un filtro por categorías si se proporcionan
+#     if categories:
+#         categories_str = "', '".join(categories)  # Convertir la lista en una cadena adecuada para SQL
+#         query = f"""
+#         SELECT * FROM general_statistics
+#         WHERE category IN ('{categories_str}')
+#         ORDER BY offer_count_title DESC
+#         """
+#     else:
+#         query = """
+#         SELECT * FROM general_statistics
+#         ORDER BY offer_count_title DESC
+#         """
+#
+#     with engine.connect() as connection:
+#         df = pd.read_sql(query, connection)
+#     return df
+
+def load_statistics(categories=None, sort_column='offer_count_title'):
     engine = get_keywords_connection()
-    # Modificar la consulta para incluir un filtro por categorías si se proporcionan
     if categories:
-        categories_str = "', '".join(categories)  # Convertir la lista en una cadena adecuada para SQL
+        categories_str = "', '".join(categories)
         query = f"""
-        SELECT * FROM general_statistics
+        SELECT *, '{sort_column}' as sort_column FROM general_statistics
         WHERE category IN ('{categories_str}')
-        ORDER BY offer_count_title DESC
+        ORDER BY {sort_column} DESC
         """
     else:
-        query = """
-        SELECT * FROM general_statistics
-        ORDER BY offer_count_title DESC
+        query = f"""
+        SELECT *, '{sort_column}' as sort_column FROM general_statistics
+        ORDER BY {sort_column} DESC
         """
-
     with engine.connect() as connection:
         df = pd.read_sql(query, connection)
     return df
-
-
 def get_computrabajo_connection():
     db_endpoint = db_config["endpoint"]
     db_name = db_names["computrabajo"]
@@ -381,6 +397,43 @@ selection = st.sidebar.radio("Select Option", options)
 st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 
 
+# if selection == "Estadísticas Generales":
+#     st.subheader("Estadísticas Generales")
+#
+#     # Usar columnas para poner los selectores en la misma línea
+#     col1, col2, col3 = st.columns(3)
+#
+#     with col1:
+#         categories = ['Programming Language', 'Role', 'Database']
+#         category_options = ["Todas las Categorías"] + categories
+#         selected_category = st.selectbox("🔧 Categorías", category_options)
+#
+#     with col2:
+#         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+#
+#     with col3:
+#         # Asumiendo que el DataFrame tiene columnas como en el ejemplo dado (modifica según tus columnas)
+#         column_options = ["offer_count_content", "title_frequency", "content_frequency", "avg_salary_usd", "avg_experience"]
+#         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
+#
+#     # Determinar las categorías seleccionadas basadas en la elección del usuario
+#     if selected_category == "Todas las Categorías":
+#         selected_categories = categories
+#     else:
+#         selected_categories = [selected_category]
+#
+#     df_stats = load_statistics(selected_categories)
+#
+#     # Visualización de datos según selección del usuario y columna seleccionada
+#     if visualization_type == "Tabla":
+#         AgGrid(df_stats[[selected_column]], height=500, width='100%', fit_columns_on_grid_load=True)
+#     elif visualization_type == "Gráfico de Barras":
+#         fig = px.bar(df_stats.head(100), x=selected_column, y='keyword', title='Gráfico de Barras', height=2000)
+#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+#         st.plotly_chart(fig)
+#     elif visualization_type == "Gráfico de Torta":
+#         fig = px.pie(df_stats.head(10), names='keyword', values=selected_column, title='Gráfico de Torta')
+#         st.plotly_chart(fig)
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
@@ -396,8 +449,7 @@ if selection == "Estadísticas Generales":
         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
     with col3:
-        # Asumiendo que el DataFrame tiene columnas como en el ejemplo dado (modifica según tus columnas)
-        column_options = ["offer_count_content", "title_frequency", "content_frequency", "avg_salary_usd", "avg_experience"]
+        column_options = ["Todas las Columnas"] + ["offer_count_content", "title_frequency", "content_frequency", "avg_salary_usd", "avg_experience"]
         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
 
     # Determinar las categorías seleccionadas basadas en la elección del usuario
@@ -406,19 +458,21 @@ if selection == "Estadísticas Generales":
     else:
         selected_categories = [selected_category]
 
-    df_stats = load_statistics(selected_categories)
+    # Determinar el criterio de ordenamiento
+    sort_column = selected_column if selected_column != "Todas las Columnas" else "offer_count_title"
+    df_stats = load_statistics(selected_categories, sort_column)
 
-    # Visualización de datos según selección del usuario y columna seleccionada
+    # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
-        AgGrid(df_stats[[selected_column]], height=500, width='100%', fit_columns_on_grid_load=True)
+        columns_to_show = ["keyword", "category"] + ([selected_column] if selected_column != "Todas las Columnas" else column_options[1:])
+        AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x=selected_column, y='keyword', title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x='keyword', y=sort_column, title='Gráfico de Barras', height=2000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
     elif visualization_type == "Gráfico de Torta":
-        fig = px.pie(df_stats.head(10), names='keyword', values=selected_column, title='Gráfico de Torta')
+        fig = px.pie(df_stats.head(10), names='keyword', values=sort_column, title='Gráfico de Torta')
         st.plotly_chart(fig)
-
 elif selection == "Ofertas":
     st.subheader("Ofertas")
     st.header("🔧 Seleccionar Palabra Clave")
