@@ -383,56 +383,38 @@ st.title("🛠️Panorama del Empleo en Tecnología: 17 Países en Análisis")
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    # Opciones para seleccionar múltiples categorías
-    categories = ['Programming Languages', 'Role', 'Database', 'Todos']  # Asumiendo que tienes categorías definidas
-    selected_categories = st.multiselect("Elige una o varias categorías", categories, default='Todos')
+    # Opciones para seleccionar múltiples categorías con mejor interacción
+    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
+    all_selected = st.checkbox("Seleccionar Todas", value=True)
 
-    # Comprobar si se seleccionó "Todos" para cargar todas las categorías
-    if 'Todos' in selected_categories:
-        selected_categories = None  # None significará sin filtro de categoría en la función load_statistics
+    selected_categories = st.multiselect("Elige una o varias categorías", categories,
+                                         default=categories if all_selected else [])
+
+    # Actualizar la selección de acuerdo con el checkbox de 'Seleccionar Todas'
+    if all_selected:
+        selected_categories = categories
+    else:
+        if set(selected_categories) == set(categories):
+            all_selected = True
+            st.checkbox("Seleccionar Todas", value=True)
 
     # Cargar estadísticas desde la base de datos filtrando por categorías seleccionadas
-    df_stats = load_statistics(selected_categories)
+    df_stats = load_statistics(selected_categories if not all_selected else None)
 
-    # Seleccionar tipo de visualización
+    # Botones para seleccionar el tipo de visualización
     st.header("🔧 Tipo de Visualización")
-    visualization_type = st.radio("Elige el tipo de visualización", [
-        "Tabla", "Gráfico de Barras", "Gráfico de Torta"
-    ])
+    visualization_type = st.selectbox("Elige el tipo de visualización",
+                                      ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
 
-    # Solo mostrar selección de columnas si el tipo de visualización es "Tabla"
+    # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
-        # Seleccionar columnas para mostrar
-        all_columns = df_stats.columns.tolist()
-        select_all = st.checkbox("Seleccionar todas las columnas", value=True)
-        if select_all:
-            selected_columns = all_columns
-        else:
-            selected_columns = st.multiselect("Selecciona las columnas para mostrar", all_columns,
-                                              default=all_columns[:7])
-
-        # Filtrar datos según la selección del usuario
-        df_page = df_stats[selected_columns]
-    else:
-        df_page = df_stats
-
-    # Visualizar datos según la selección del usuario
-    if visualization_type == "Tabla":
-        # Crear opciones de la tabla AgGrid
-        gb = GridOptionsBuilder.from_dataframe(df_page)
-        gb.configure_default_column(wrapText=True, autoHeight=True)
-        grid_options = gb.build()
-        AgGrid(df_page, gridOptions=grid_options, height=500, width='100%')
-
+        AgGrid(df_stats, height=500, width='100%', fit_columns_on_grid_load=True)
     elif visualization_type == "Gráfico de Barras":
-        df_bar = df_page.head(100)  # Limitar a los primeros 100 resultados
-        fig = px.bar(df_bar, x='offer_count_title', y='keyword', title='Gráfico de Barras', height=2000)
-        fig.update_layout(yaxis={'categoryorder': 'total ascending'})  # Ordenar las barras
+        fig = px.bar(df_stats.head(100), x='offer_count_title', y='keyword', title='Gráfico de Barras', height=2000)
+        fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
-
     elif visualization_type == "Gráfico de Torta":
-        df_pie = df_page.head(10)  # Limitar a los primeros 10 resultados
-        fig = px.pie(df_pie, names='keyword', values='offer_count_title', title='Gráfico de Torta')
+        fig = px.pie(df_stats.head(10), names='keyword', values='offer_count_title', title='Gráfico de Torta')
         st.plotly_chart(fig)
 
 
