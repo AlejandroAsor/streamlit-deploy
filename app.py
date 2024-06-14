@@ -383,7 +383,7 @@ if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
     # Opción para seleccionar una categoría
-    categories = ['Categoria 1', 'Categoria 2', 'Categoria 3']  # Asumiendo que tienes categorías definidas
+    categories = ['Programming Language', 'Role', 'Database']  # Asumiendo que tienes categorías definidas
     selected_category = st.selectbox("Elige una categoría", categories, index=0)
 
     # Cargar estadísticas desde la base de datos filtrando por categoría
