@@ -409,10 +409,55 @@ column_names_in_spanish = {
 }
 
 
+# if selection == "Estadísticas Generales":
+#     st.subheader("Estadísticas Generales")
+#
+#     # Usar columnas para poner los selectores en la misma línea
+#     col1, col2, col3 = st.columns(3)
+#
+#     with col1:
+#         categories = ['Programming Language', 'Role', 'Database']
+#         category_options = ["Todas las Categorías"] + categories
+#         selected_category = st.selectbox("🔧 Categorías", category_options)
+#
+#     with col2:
+#         visualization_type = st.selectbox("🔧 Tipo de Visualización", ["Tabla", "Gráfico de Barras", "Gráfico de Torta"])
+#
+#     with col3:
+#         column_options = ["Todas las Columnas"] + list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
+#         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
+#
+#     # Determinar las categorías seleccionadas basadas en la elección del usuario
+#     if selected_category == "Todas las Categorías":
+#         selected_categories = categories
+#     else:
+#         selected_categories = [selected_category]
+#
+#     # Determinar el criterio de ordenamiento
+#     sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
+#     df_stats = load_statistics(selected_categories, sort_column)
+#
+#     # Cambiar nombres de columnas al español
+#     df_stats.rename(columns=column_names_in_spanish, inplace=True)
+#
+#     # Visualización de datos según selección del usuario
+#     if visualization_type == "Tabla":
+#         columns_to_show = ["Palabra clave", "Categoría"] + ([selected_column] if selected_column != "Todas las Columnas" else list(column_names_in_spanish.values())[2:])
+#         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
+#
+#     elif visualization_type == "Gráfico de Barras":
+#         fig = px.bar(df_stats.head(100), x=sort_column, y='Palabra clave', title='Gráfico de Barras', height=2000)
+#         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+#         st.plotly_chart(fig)
+#
+#     elif visualization_type == "Gráfico de Torta":
+#         fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column, title='Gráfico de Torta')
+#         st.plotly_chart(fig)
+
+
 if selection == "Estadísticas Generales":
     st.subheader("Estadísticas Generales")
 
-    # Usar columnas para poner los selectores en la misma línea
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -427,18 +472,18 @@ if selection == "Estadísticas Generales":
         column_options = ["Todas las Columnas"] + list(column_names_in_spanish.values())[2:]  # Traducir nombres de columnas
         selected_column = st.selectbox("🔧 Selecciona Columna", column_options)
 
-    # Determinar las categorías seleccionadas basadas en la elección del usuario
     if selected_category == "Todas las Categorías":
         selected_categories = categories
     else:
         selected_categories = [selected_category]
 
-    # Determinar el criterio de ordenamiento
+    # Determinar el criterio de ordenamiento y usar el nombre en español
     sort_column = list(column_names_in_spanish.keys())[list(column_names_in_spanish.values()).index(selected_column)] if selected_column != "Todas las Columnas" else "offer_count_title"
     df_stats = load_statistics(selected_categories, sort_column)
 
     # Cambiar nombres de columnas al español
     df_stats.rename(columns=column_names_in_spanish, inplace=True)
+    sort_column_spanish = column_names_in_spanish.get(sort_column, sort_column)  # Obtener el nombre en español
 
     # Visualización de datos según selección del usuario
     if visualization_type == "Tabla":
@@ -446,12 +491,12 @@ if selection == "Estadísticas Generales":
         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
 
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x=sort_column, y='Palabra clave', title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x='Palabra clave', y=sort_column_spanish, title='Gráfico de Barras', height=2000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
 
     elif visualization_type == "Gráfico de Torta":
-        fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column, title='Gráfico de Torta')
+        fig = px.pie(df_stats.head(10), names='Palabra clave', values=sort_column_spanish, title='Gráfico de Torta')
         st.plotly_chart(fig)
 # if selection == "Estadísticas Generales":
 #     st.subheader("Estadísticas Generales")
