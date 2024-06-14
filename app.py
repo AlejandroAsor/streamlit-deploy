@@ -466,10 +466,12 @@ if selection == "Estadísticas Generales":
     if visualization_type == "Tabla":
         columns_to_show = ["keyword", "category"] + ([selected_column] if selected_column != "Todas las Columnas" else column_options[1:])
         AgGrid(df_stats[columns_to_show], height=500, width='100%', fit_columns_on_grid_load=True)
+
     elif visualization_type == "Gráfico de Barras":
-        fig = px.bar(df_stats.head(100), x='keyword', y=sort_column, title='Gráfico de Barras', height=2000)
+        fig = px.bar(df_stats.head(100), x=sort_column, y='keyword, title='Gráfico de Barras', height=2000)
         fig.update_layout(yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig)
+
     elif visualization_type == "Gráfico de Torta":
         fig = px.pie(df_stats.head(10), names='keyword', values=sort_column, title='Gráfico de Torta')
         st.plotly_chart(fig)
